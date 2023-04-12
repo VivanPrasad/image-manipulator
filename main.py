@@ -1,18 +1,18 @@
 from PIL import Image, ImageFilter, ImageTk
 
+import os
+
 """
 CREDITS
-
-Example script for testing the Forest theme
-Author: rdbende
+Forest theme by rdbende
 License: MIT license
 Source: https://github.com/rdbende/ttk-widget-factory
-
-
 """
 
 import tkinter as tk
 from tkinter import ttk
+
+os.startfile(".")
 
 root = tk.Tk()
 root.title("Image Manipulator")
@@ -37,7 +37,7 @@ root.tk.call('source', 'forest-dark.tcl')
 style.theme_use('forest-dark')
 
 # Create lists for the Comboboxes
-option_menu_list = ["", "OptionMenu", "Option 1", "Option 2"]
+option_menu_list = ["", "OptionMenu", "Black and White", "Option 2"]
 combo_list = ["Combobox", "Editable item 1", "Editable item 2"]
 readonly_combo_list = ["Readonly combobox", "Item 1", "Item 2"]
 
