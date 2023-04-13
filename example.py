@@ -2,6 +2,13 @@ from PIL import Image, ImageFilter, ImageTk
 
 import os
 
+"""
+CREDITS
+Forest theme by rdbende
+License: MIT license
+Source: https://github.com/rdbende/ttk-widget-factory
+"""
+
 import tkinter as tk
 from tkinter import ttk
 
