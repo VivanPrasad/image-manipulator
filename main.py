@@ -7,6 +7,8 @@ from tkinter import ttk
 
 os.startfile(".")
 
+image = Image.open('images/3.png')
+image.show()
 root = tk.Tk()
 root.title("Image Manipulator")
 root.iconbitmap("./icon.ico")
