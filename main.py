@@ -34,7 +34,7 @@ style.theme_use('forest-dark')
 # Create lists for the Comboboxes
 label = ttk.Label(root, text="Blur %", justify="center")
 filter_option_list = ["", "None", "Black and White", "Edges","Contour"]
-thumbnail_option_list = ["","Original","200x200","400x400","600x600","800x800","1200x1200"]
+thumbnail_option_list = ["","Original","100x100","200x200","400x400","600x600","800x800","1200x1200"]
 
 # File variables/parameters for saving file and presets
 file_type = tk.IntVar(value=2)
@@ -66,7 +66,7 @@ widgets_frame.grid(row=3, column=0, padx=(25,75), pady=(30, 10), sticky="nsew", 
 widgets_frame.columnconfigure(index=0, weight=1)
 
 # Switch
-switch = ttk.Checkbutton(widgets_frame, text="Situational Build Path", style="Switch")
+switch = ttk.Checkbutton(widgets_frame, text="Situational Build Path (WIP)", style="Switch")
 switch.grid(row=9, column=0, padx=5, pady=10, sticky="nsew")
 
 
@@ -92,18 +92,27 @@ def save_file(selection):
     except: pass
     for file in selection:
         file_name = treeview.item(file, "text")
-        image = Image.open(f'images/{file_name}')
-        image.rotate(rotation.get()).save(f'edited-images/{file_name.split(".")[0]}-edited{file_ext}')
-        image.filter(ImageFilter.GaussianBlur(blur.get())).save(f'edited-images/{file_name.split(".")[0]}-edited{file_ext}')
-        
+        try:
+            image = Image.open(f'images/{file_name}')
+        except:
+            image = Image.open(f'edited-images/{file_name}')
+        save_name = f'edited-images/{file_name.split(".")[0]}-edited{file_ext}'
+        image.save(save_name)
+        image = Image.open(save_name)
+        image.rotate(int(rotation.get()),expand=True).save(save_name)
+        image = Image.open(save_name)
+        image.filter(ImageFilter.GaussianBlur(int(blur.get()))).save(save_name)
+        image = Image.open(save_name)
         if filter_option.get() == "Black and White":
-            image.convert(mode="L").save(f'edited-images/{file_name.split(".")[0]}-edited{file_ext}')
+            image.convert(mode="L").save(save_name)
         elif filter_option.get() == "Edges":
-            image.filter(ImageFilter.FIND_EDGES).save(f'edited-images/{file_name.split(".")[0]}-edited{file_ext}')
+            image.filter(ImageFilter.FIND_EDGES).save(save_name)
         elif filter_option.get() == "Contour":
-            image.filter(ImageFilter.CONTOUR).save(f'edited-images/{file_name.split(".")[0]}-edited{file_ext}')
+            image.filter(ImageFilter.CONTOUR).save(save_name)
+        image = Image.open(save_name)
         if thumbnail_option.get() != "Original":
-            image.thumbnail(tuple(thumbnail_option.get().split("x"))).save(f'edited-images/{file_name.split(".")[0]}-edited{file_ext}')
+            image.thumbnail(tuple([int(thumbnail_option.get().split("x")[0]),int(thumbnail_option.get().split("x")[0])]))
+            image.save(save_name)
         image.close()
     global treeview_data
     treeview_data = []
@@ -175,13 +184,12 @@ def update_treeview():
         for f in os.listdir('edited-images'):
             i += 1
             treeview_data.append((x,"end",i,str(f),()))
-        
     except: pass
     for item in treeview_data:
         try:
             treeview.insert(parent=item[0], index=item[1], iid=item[2], text=item[3], values=item[4])
-        except:
-            pass
+        except: pass
+            
     if item[0] == "" or item[2] in (8, 12):
         try:
             treeview.item(item[2], open=True) # Open parents
