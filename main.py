@@ -168,6 +168,7 @@ def update_treeview():
         treeview_data.append((1,"end",i,str(f),()))
     # Define treeview data
     try:
+        os.listdir("edited-images")
         i += 1
         treeview_data.append(("", "end", i, "edited-images",()))
         x = i
@@ -177,9 +178,15 @@ def update_treeview():
         
     except: pass
     for item in treeview_data:
-        treeview.insert(parent=item[0], index=item[1], iid=item[2], text=item[3], values=item[4])
+        try:
+            treeview.insert(parent=item[0], index=item[1], iid=item[2], text=item[3], values=item[4])
+        except:
+            pass
     if item[0] == "" or item[2] in (8, 12):
-        treeview.item(item[2], open=True) # Open parents
+        try:
+            treeview.item(item[2], open=True) # Open parents
+        except:
+            pass
 
 
 update_treeview()
