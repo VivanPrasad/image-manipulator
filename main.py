@@ -43,6 +43,7 @@ filter_option = tk.StringVar(value=filter_option_list[1])
 thumbnail_option = tk.StringVar(value=thumbnail_option_list[1])
 blur = tk.DoubleVar(value=0) #Blur
 rotation = tk.DoubleVar(value=0) #Rotation
+combined_edit = tk.BooleanVar(value=False)
 
 # Separator
 """
@@ -66,10 +67,15 @@ widgets_frame = ttk.Frame(root, padding=(0, 0, 0, 10))
 widgets_frame.grid(row=3, column=0, padx=(25,75), pady=(30, 10), sticky="nsew", rowspan=3)
 widgets_frame.columnconfigure(index=0, weight=1)
 
-# Switch
-switch = ttk.Checkbutton(widgets_frame, text="Situational Build Path (WIP)", style="Switch")
-switch.grid(row=9, column=0, padx=5, pady=10, sticky="nsew")
+# Combined Edits - Switch
+def toggle_switch(state):
+    if state.get() == True:
+        switch.config(text="Combined Edits")
+    else:
+        switch.config(text="Separate Edits")
 
+switch = ttk.Checkbutton(widgets_frame, text="Separate Edits",style="Switch",command=lambda: toggle_switch(combined_edit),variable=combined_edit)
+switch.grid(row=9, column=0, padx=5, pady=10, sticky="nsew")
 
 # Panedwindow
 paned = ttk.PanedWindow(root)
@@ -86,11 +92,14 @@ treeFrame.pack(expand=True, fill="both", padx=5, pady=5)
 # Scrollbar
 treeScroll = ttk.Scrollbar(treeFrame)
 treeScroll.pack(side="right", fill="y")
+
 def save_file(selection):
     file_ext = ['','.jpeg','.png','.webp'][file_type.get()]
     
-    try: os.makedirs(f'./edited-images')
-    except: pass
+    try: 
+        os.makedirs(f'./edited-images')
+    except: 
+        pass
     for file in selection:
         file_name = treeview.item(file, "text")
         try:
@@ -152,7 +161,7 @@ def update_selection(selection):
         save_button.config(state="enabled")
 
 # Treeview
-treeview = ttk.Treeview(treeFrame, selectmode="extended", yscrollcommand=treeScroll.set, columns=(1), height=20)
+treeview = ttk.Treeview(treeFrame, selectmode="extended", yscrollcommand=treeScroll.set, height=8)
 treeview.pack(expand=True, fill="both")
 #treeview.bind('<Double-1>',lambda event: open_file(treeview.selection()))
 treeview.bind('<ButtonRelease-1>', lambda event: update_selection(treeview.selection()))

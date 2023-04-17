@@ -17,6 +17,9 @@ _The main.py was derived from the expample.py, so I could intuitively learn tkin
 
 ## Installation
 
-* Download and extract the .zip of the repository.
-* Open the "image-manipulator-main" folder in Visual Studio Code *(make sure it is not image-manipulator-main/image-manipulator-main it will not work!)*
-* Open visual
+1. Download and extract the .zip of the repository.
+2. Open the "image-manipulator-main" folder in Visual Studio Code *(make sure it is not image-manipulator-main/image-manipulator-main it will not work!)*
+3. Run main.py and enjoy!
+
+## Known Issues
+
