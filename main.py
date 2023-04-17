@@ -12,7 +12,8 @@ import os
 #image.show()
 root = tk.Tk()
 root.title("Image Manipulator")
-root.iconbitmap("./icon.ico")
+
+root.iconbitmap(f"./icon.ico")
 root.option_add("*tearOff", False) # This is always a good idea
 
 # Make the app responsive
@@ -88,15 +89,15 @@ treeScroll.pack(side="right", fill="y")
 def save_file(selection):
     file_ext = ['','.jpeg','.png','.webp'][file_type.get()]
     
-    try: os.makedirs('edited-images')
+    try: os.makedirs(f'./edited-images')
     except: pass
     for file in selection:
         file_name = treeview.item(file, "text")
         try:
-            image = Image.open(f'images/{file_name}')
+            image = Image.open(f'./images/{file_name}')
         except:
-            image = Image.open(f'edited-images/{file_name}')
-        save_name = f'edited-images/{file_name.split(".")[0]}-edited{file_ext}'
+            image = Image.open(f'./edited-images/{file_name}')
+        save_name = f'./edited-images/{file_name.split(".")[0]}-edited{file_ext}'
         image.save(save_name)
         image = Image.open(save_name)
         image.rotate(int(rotation.get()),expand=True).save(save_name)
@@ -125,9 +126,9 @@ def open_file(selection_id): #Gives the selection ID for the treeview item selec
             os.startfile(".")
         else:
             try:
-                image = Image.open(f'edited-images/{file_name}').show()
+                image = Image.open(f'./edited-images/{file_name}').show()
             except:
-                image = Image.open(f'images/{file_name}').show()
+                image = Image.open(f'./images/{file_name}').show()
 
 
 def update_selection(selection):
@@ -172,16 +173,16 @@ def update_treeview():
     global treeview_data
     treeview_data = [("", "end", 1, "images",())]
     i = 1
-    for f in os.listdir('images'):
+    for f in os.listdir(f'./images'):
         i += 1
         treeview_data.append((1,"end",i,str(f),()))
     # Define treeview data
     try:
-        os.listdir("edited-images")
+        os.listdir(f"./edited-images")
         i += 1
         treeview_data.append(("", "end", i, "edited-images",()))
         x = i
-        for f in os.listdir('edited-images'):
+        for f in os.listdir(f'./edited-images'):
             i += 1
             treeview_data.append((x,"end",i,str(f),()))
     except: pass
