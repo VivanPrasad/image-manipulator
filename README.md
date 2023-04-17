@@ -1,3 +1,3 @@
 # image-manipulator
 
-The tkinter module theme uses .tcl files from a configured theme called "Forest Theme"
+The tkinter module GUI uses .tcl files from the open-source theme "Forest Theme" by rdbende.
