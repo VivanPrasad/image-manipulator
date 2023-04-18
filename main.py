@@ -37,7 +37,7 @@ filter_option_list = ["", "None", "Black and White", "Edges","Contour"]
 thumbnail_option_list = ["","Original","100x100","200x200","400x400","600x600","800x800","1200x1200"]
 
 #Folder Path Names
-image_folder_paths = ["images","edited","jpeg","png","webp","blurred","rotated","filtered","100","200","400","600","800","1200"]
+image_folder_paths = ["images","jpeg","png","webp","blurred","rotated","filtered","100","200","400","600","800","1200","edited"]
 
 # File variables/parameters for saving file and presets
 file_type = tk.IntVar(value=2)
@@ -55,8 +55,7 @@ separator.grid(row=1, column=0, padx=(20, 10), pady=10, sticky="ew")
 # Create a Frame for the Radiobuttons
 radio_frame = ttk.LabelFrame(root, text="Save As", padding=(20, 10))
 radio_frame.grid(row=3, column=1, padx=(20, 5), pady=5, sticky="nsew")
-
-# Radiobuttons
+    # Radiobuttons
 radio_1 = ttk.Radiobutton(radio_frame, text=".jpeg", variable=file_type, value=1)
 radio_1.grid(row=0, column=0, padx=0, pady=10, sticky="nsew")
 radio_2 = ttk.Radiobutton(radio_frame, text=".png", variable=file_type, value=2)
@@ -96,20 +95,19 @@ treeScroll = ttk.Scrollbar(treeFrame)
 treeScroll.pack(side="right", fill="y")
 
 def save_file(selection):
-    file_ext = ['','.jpeg','.png','.webp'][file_type.get()]
+    file_ext = ['','jpeg','png','webp'][file_type.get()]
     
     if combined_edit.get() == True:
         try: 
             os.makedirs(f'./edited')
-        except: 
-            pass
+        except: pass
         for file in selection:
             file_name = treeview.item(file, "text")
-            try:
-                image = Image.open(f'./images/{file_name}')
-            except:
-                image = Image.open(f'./edited/{file_name}')
-            save_name = f'./edited/{file_name.split(".")[0]}-edited{file_ext}'
+            for folder in image_folder_paths:
+                try:
+                    image = Image.open(f'./{folder}/{file_name}')
+                except: pass
+            save_name = f'./edited/{file_name.split(".")[0]}-edited.{file_ext}'
             image.save(save_name)
             image = Image.open(save_name)
             image.rotate(int(rotation.get()),expand=True).save(save_name)
@@ -127,6 +125,31 @@ def save_file(selection):
                 image.thumbnail(tuple([int(thumbnail_option.get().split("x")[0]),int(thumbnail_option.get().split("x")[0])]))
                 image.save(save_name)
             image.close()
+    else:
+        #["images","jpeg","png","webp","blurred","rotated","filtered","100","200","400","600","800","1200","edited"]
+        index = 0
+        for data in [file_ext,int(blur.get()),int(rotation.get()),filter_option.get(),thumbnail_option.get()]:
+            default_values = ["jpeg",0,0,"None","Original"]
+            
+            for file in selection:
+                file_name = treeview.item(file, "text")
+                for folder in image_folder_paths:
+                    try:
+                        image = Image.open(f'./{folder}/{file_name}')
+                    except: pass
+                if data != default_values:
+                    if not index in [1,2]: #blur or rotation
+                        try: os.makedirs(f'./{data}')
+                        except: pass
+                    elif index == 1:
+                        try: os.makedirs(f"")
+                        except: pass
+                    else:
+                        try: os.makedirs(f"")
+                        except:pass
+                if index == 0:
+                    pass #file_ext
+            index += 1
     global treeview_data
     treeview_data = []
     update_treeview()
