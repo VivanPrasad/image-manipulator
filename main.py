@@ -94,6 +94,8 @@ treeFrame.pack(expand=True, fill="both", padx=5, pady=5)
 treeScroll = ttk.Scrollbar(treeFrame)
 treeScroll.pack(side="right", fill="y")
 
+def edit_file(file_name, save_file_name):
+    pass
 def save_file(selection):
     file_ext = ['','jpeg','png','webp'][file_type.get()]
     
@@ -130,23 +132,26 @@ def save_file(selection):
         index = 0
         for data in [file_ext,int(blur.get()),int(rotation.get()),filter_option.get(),thumbnail_option.get()]:
             default_values = ["jpeg",0,0,"None","Original"]
-            
             for file in selection:
                 file_name = treeview.item(file, "text")
                 for folder in image_folder_paths:
                     try:
                         image = Image.open(f'./{folder}/{file_name}')
                     except: pass
-                if data != default_values:
-                    if not index in [1,2]: #blur or rotation
+                if not data in default_values:
+                    if data == "png":
+                        pass
+                    if not index in [1,2]: #not blur or rotation
                         try: os.makedirs(f'./{data}')
                         except: pass
-                    elif index == 1:
-                        try: os.makedirs(f"")
+                    elif index == 1: #blur
+                        try: os.makedirs(f"./blurred")
                         except: pass
-                    else:
-                        try: os.makedirs(f"")
+                    else: #rotation
+                        try: os.makedirs(f"./rotated")
                         except:pass
+
+                    
                 if index == 0:
                     pass #file_ext
             index += 1
