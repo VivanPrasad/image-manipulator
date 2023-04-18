@@ -1,8 +1,7 @@
 from PIL import Image, ImageFilter, ImageTk
 import tkinter as tk
 from tkinter import ttk
-import os
-
+import os, datetime
 
 # The theme is derived off of the example. I had to watch a few videos to replicate some of the features as Tkinter is extremely complex.
 
@@ -37,6 +36,9 @@ label = ttk.Label(root, text="Blur %", justify="center")
 filter_option_list = ["", "None", "Black and White", "Edges","Contour"]
 thumbnail_option_list = ["","Original","100x100","200x200","400x400","600x600","800x800","1200x1200"]
 
+#Folder Path Names
+image_folder_paths = ["images","edited","jpeg","png","webp","blurred","rotated","filtered","100","200","400","600","800","1200"]
+
 # File variables/parameters for saving file and presets
 file_type = tk.IntVar(value=2)
 filter_option = tk.StringVar(value=filter_option_list[1])
@@ -52,15 +54,15 @@ separator.grid(row=1, column=0, padx=(20, 10), pady=10, sticky="ew")
 """
 # Create a Frame for the Radiobuttons
 radio_frame = ttk.LabelFrame(root, text="Save As", padding=(20, 10))
-radio_frame.grid(row=3, column=2, padx=(20, 5), pady=5, sticky="nsew")
+radio_frame.grid(row=3, column=1, padx=(20, 5), pady=5, sticky="nsew")
 
 # Radiobuttons
 radio_1 = ttk.Radiobutton(radio_frame, text=".jpeg", variable=file_type, value=1)
-radio_1.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+radio_1.grid(row=0, column=0, padx=0, pady=10, sticky="nsew")
 radio_2 = ttk.Radiobutton(radio_frame, text=".png", variable=file_type, value=2)
-radio_2.grid(row=1, column=0, padx=5, pady=10, sticky="nsew")
+radio_2.grid(row=1, column=0, padx=0, pady=10, sticky="nsew")
 radio_3 = ttk.Radiobutton(radio_frame, text=".webp",variable=file_type, value=3)
-radio_3.grid(row=2, column=0, padx=5, pady=10, sticky="nsew")
+radio_3.grid(row=2, column=0, padx=0, pady=10, sticky="nsew")
 
 # Create a Frame for input widgets
 widgets_frame = ttk.Frame(root, padding=(0, 0, 0, 10))
@@ -96,37 +98,39 @@ treeScroll.pack(side="right", fill="y")
 def save_file(selection):
     file_ext = ['','.jpeg','.png','.webp'][file_type.get()]
     
-    try: 
-        os.makedirs(f'./edited-images')
-    except: 
-        pass
-    for file in selection:
-        file_name = treeview.item(file, "text")
-        try:
-            image = Image.open(f'./images/{file_name}')
-        except:
-            image = Image.open(f'./edited-images/{file_name}')
-        save_name = f'./edited-images/{file_name.split(".")[0]}-edited{file_ext}'
-        image.save(save_name)
-        image = Image.open(save_name)
-        image.rotate(int(rotation.get()),expand=True).save(save_name)
-        image = Image.open(save_name)
-        image.filter(ImageFilter.GaussianBlur(int(blur.get()))).save(save_name)
-        image = Image.open(save_name)
-        if filter_option.get() == "Black and White":
-            image.convert(mode="L").save(save_name)
-        elif filter_option.get() == "Edges":
-            image.filter(ImageFilter.FIND_EDGES).save(save_name)
-        elif filter_option.get() == "Contour":
-            image.filter(ImageFilter.CONTOUR).save(save_name)
-        image = Image.open(save_name)
-        if thumbnail_option.get() != "Original":
-            image.thumbnail(tuple([int(thumbnail_option.get().split("x")[0]),int(thumbnail_option.get().split("x")[0])]))
+    if combined_edit.get() == True:
+        try: 
+            os.makedirs(f'./edited')
+        except: 
+            pass
+        for file in selection:
+            file_name = treeview.item(file, "text")
+            try:
+                image = Image.open(f'./images/{file_name}')
+            except:
+                image = Image.open(f'./edited/{file_name}')
+            save_name = f'./edited/{file_name.split(".")[0]}-edited{file_ext}'
             image.save(save_name)
-        image.close()
+            image = Image.open(save_name)
+            image.rotate(int(rotation.get()),expand=True).save(save_name)
+            image = Image.open(save_name)
+            image.filter(ImageFilter.GaussianBlur(int(blur.get()))).save(save_name)
+            image = Image.open(save_name)
+            if filter_option.get() == "Black and White":
+                image.convert(mode="L").save(save_name)
+            elif filter_option.get() == "Edges":
+                image.filter(ImageFilter.FIND_EDGES).save(save_name)
+            elif filter_option.get() == "Contour":
+                image.filter(ImageFilter.CONTOUR).save(save_name)
+            image = Image.open(save_name)
+            if thumbnail_option.get() != "Original":
+                image.thumbnail(tuple([int(thumbnail_option.get().split("x")[0]),int(thumbnail_option.get().split("x")[0])]))
+                image.save(save_name)
+            image.close()
     global treeview_data
     treeview_data = []
     update_treeview()
+
 def open_file(selection_id): #Gives the selection ID for the treeview item selected
     #treeview.item(selection_id)
     for file in selection_id:
@@ -135,10 +139,9 @@ def open_file(selection_id): #Gives the selection ID for the treeview item selec
             os.startfile(".")
         else:
             try:
-                image = Image.open(f'./edited-images/{file_name}').show()
+                image = Image.open(f'./edited/{file_name}').show()
             except:
                 image = Image.open(f'./images/{file_name}').show()
-
 
 def update_selection(selection):
     for file in treeview.selection():
@@ -149,10 +152,17 @@ def update_selection(selection):
         select_label.config(text="Selected multiple files")
         button.config(text="Open Files")
         save_button.config(text="Save Files")
+        if [True for i in [treeview.item(x, 'text') for x in treeview.selection()] if os.path.isdir(f"./{i}")]:
+            save_button.config(state="disabled")
+        else:
+            save_button.config(state="enabled")
     elif os.path.isdir(treeview.item(treeview.selection(), 'text')):
         select_label.config(text=f"Selected folder '{treeview.item(treeview.selection(), 'text')}'")
         save_button.config(text="Save File")
-        button.config(text="Open File")
+        button.config(text="Open Folder")
+    elif treeview.item(treeview.selection(), 'text') == "":
+        select_label.config(text="No files selected")
+
     else:
         select_label.config(text=f"Selected file '{treeview.item(treeview.selection(), 'text')}'")
         save_button.config(state="normal")
@@ -161,7 +171,7 @@ def update_selection(selection):
         save_button.config(state="enabled")
 
 # Treeview
-treeview = ttk.Treeview(treeFrame, selectmode="extended", yscrollcommand=treeScroll.set, height=8)
+treeview = ttk.Treeview(treeFrame, selectmode="extended", yscrollcommand=treeScroll.set,height=8,columns=[1,2])
 treeview.pack(expand=True, fill="both")
 #treeview.bind('<Double-1>',lambda event: open_file(treeview.selection()))
 treeview.bind('<ButtonRelease-1>', lambda event: update_selection(treeview.selection()))
@@ -169,57 +179,52 @@ treeScroll.config(command=treeview.yview)
 
 select_label = ttk.Label(widgets_frame, text="No File Selected")
 select_label.grid(row=3, column=0)
+
 # Treeview columns
-treeview.column("#0", width=150)
 
 # Treeview headings
 treeview.heading("#0", text="Name", anchor="center")
+treeview.heading("#1", text="Date", anchor="center")
+treeview.heading("#2", text="Size", anchor="center")
 
 treeview_data = []
 
+def get_date(file):
+    t = datetime.datetime.fromtimestamp(os.path.getmtime(file),tz=datetime.timezone(datetime.timedelta(hours=-7), 'PST'))
+    return f"{t.day}/{t.month}/{t.year} {t.hour % 12:.0f}:{t.minute:.0f}:{('0' + str(t.second)) if t.second < 10 else t.second} {'PM' if t.hour > 12 else 'AM'}"
 def update_treeview():
     global treeview
     global treeview_data
-    treeview_data = [("", "end", 1, "images",())]
-    i = 1
-    for f in os.listdir(f'./images'):
-        i += 1
-        treeview_data.append((1,"end",i,str(f),()))
-    # Define treeview data
-    try:
-        os.listdir(f"./edited-images")
-        i += 1
-        treeview_data.append(("", "end", i, "edited-images",()))
-        x = i
-        for f in os.listdir(f'./edited-images'):
-            i += 1
-            treeview_data.append((x,"end",i,str(f),()))
-    except: pass
+
+    treeview_data = []
+
+    id = 1
+    for folder in os.listdir('.'):
+        if folder in image_folder_paths:
+            folder_id = id
+            treeview_data.append(("", "end", id, folder, (get_date(folder), f"{os.stat(folder).st_size / 1024 ** 2 : .2f} MB" if (os.stat(folder).st_size / 1024 ** 2) > 1 else f"{os.stat(folder).st_size / 1024 : .2f} KB")))
+            id += 1
+            for f in os.listdir(f'./{folder}'):
+                treeview_data.append((folder_id,"end",id,str(f),(get_date(f'./{folder}/{f}'),f"{os.stat(f'./{folder}/{f}').st_size / 1024 ** 2 : .2f} MB")))
+                id += 1
+    
     for item in treeview_data:
-        try:
-            treeview.insert(parent=item[0], index=item[1], iid=item[2], text=item[3], values=item[4])
-        except: pass
-            
-    if item[0] == "" or item[2] in (8, 12):
-        try:
-            treeview.item(item[2], open=True) # Open parents
-        except:
+        try: treeview.insert(parent=item[0], index=item[1], iid=item[2], text=item[3], values=item[4])
+        except: treeview.item(item[2],text=item[3],values=item[4])
+        if item[3] in image_folder_paths:
             pass
-
-
-update_treeview()
-# Insert treeview data
-# Select and scroll
-#treeview.selection_set(10)
-#treeview.see(7)
+        else:
+            pass
+        if item[0] == "":
+            treeview.item(item[2], open=True)
 
 # Button
 button = ttk.Button(widgets_frame, text="Open File",command=lambda: open_file(treeview.selection()))
-button.grid(row=6, column=0, padx=5, pady=10, sticky="nsew")
+button.grid(row=4, column=0, padx=5, pady=10, sticky="nsew")
 
 # Accentbutton
 save_button = ttk.Button(widgets_frame, text="Save File", style="Accent.TButton",command=lambda: save_file(treeview.selection()))
-save_button.grid(row=7, column=0, padx=5, pady=10, sticky="nsew")
+save_button.grid(row=5, column=0, padx=5, pady=10, sticky="nsew")
 
 # Pane #2
 pane_2 = ttk.Frame(paned)
@@ -285,5 +290,5 @@ x_cordinate = int((root.winfo_screenwidth()/2) - (root.winfo_width()/2))
 y_cordinate = int((root.winfo_screenheight()/2) - (root.winfo_height()/2))
 root.geometry("+{}+{}".format(x_cordinate, y_cordinate))
 
-# Start the main loop
-root.mainloop()
+update_treeview() #Update the treeview
+root.mainloop() #Start the main loop
