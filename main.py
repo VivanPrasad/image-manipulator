@@ -37,7 +37,7 @@ filter_option_list = ["", "None", "Black and White", "Edges","Contour"]
 thumbnail_option_list = ["","Original","100x100","200x200","400x400","600x600","800x800","1200x1200"]
 
 #Folder Path Names
-image_folder_paths = ["images","jpeg","png","webp","blurred","rotated","filtered","100","200","400","600","800","1200","edited"]
+image_folder_paths = ["images","jpeg","png","webp","blurred","rotated","filtered","100x100","200x200","400x400","600x600","800x800","1200x1200","edited"]
 
 # File variables/parameters for saving file and presets
 file_type = tk.IntVar(value=2)
@@ -96,10 +96,11 @@ treeScroll.pack(side="right", fill="y")
 
 def edit_file(file_name, save_file_name):
     pass
+
 def save_file(selection):
     file_ext = ['','jpeg','png','webp'][file_type.get()]
     
-    if combined_edit.get() == True:
+    if combined_edit.get() == True: #save as multiple edits
         try: 
             os.makedirs(f'./edited')
         except: pass
@@ -136,7 +137,7 @@ def save_file(selection):
                 file_name = treeview.item(file, "text")
                 for folder in image_folder_paths:
                     try:
-                        image = Image.open(f'./{folder}/{file_name}')
+                        image = Image.open(f'./{folder}/{file_name}').convert('RGB')
                     except: pass
                 if not data in default_values:
                     if data == "png":
@@ -150,8 +151,9 @@ def save_file(selection):
                     else: #rotation
                         try: os.makedirs(f"./rotated")
                         except:pass
-
-                    
+                    if index == 4:
+                        image.thumbnail(tuple([int(data.split("x")[0]),int(data.split("x")[0])]))
+                        image.save(f'./{data}/{file_name}')
                 if index == 0:
                     pass #file_ext
             index += 1
@@ -163,8 +165,9 @@ def open_file(selection_id): #Gives the selection ID for the treeview item selec
     #treeview.item(selection_id)
     for file in selection_id:
         file_name = treeview.item(file, "text")
+        print(treeview.item(treeview.parent(file))['text']) #IMPORTANT
         if file_name == "images":
-            os.startfile(".")
+            os.startfile("./images")
         else:
             try:
                 image = Image.open(f'./edited/{file_name}').show()
@@ -190,6 +193,8 @@ def update_selection(selection):
         button.config(text="Open Folder")
     elif treeview.item(treeview.selection(), 'text') == "":
         select_label.config(text="No files selected")
+
+
 
     else:
         select_label.config(text=f"Selected file '{treeview.item(treeview.selection(), 'text')}'")
@@ -223,7 +228,8 @@ def get_date(file):
 def update_treeview():
     global treeview
     global treeview_data
-
+    for i in treeview.get_children():
+        treeview.delete(i)
     treeview_data = []
 
     id = 1
