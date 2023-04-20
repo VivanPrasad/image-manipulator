@@ -9,6 +9,7 @@ import os, datetime
 
 #image = Image.open('images/3.png')
 #image.show()
+
 root = tk.Tk()
 root.title("Image Manipulator")
 
@@ -27,7 +28,6 @@ style = ttk.Style(root)
 
 # Import the tcl file
 root.tk.call('source', 'forest-dark.tcl')
-
 # Set the theme with the theme_use method
 style.theme_use('forest-dark')
 
@@ -37,8 +37,17 @@ filter_option_list = ["", "None", "Black and White", "Edges","Contour"]
 thumbnail_option_list = ["","Original","100x100","200x200","400x400","600x600","800x800","1200x1200"]
 
 #Folder Path Names
-image_folder_paths = ["images","jpeg","png","webp","blurred","rotated","filtered","100x100","200x200","400x400","600x600","800x800","1200x1200","edited"]
+image_folder_paths = ["images","jpeg","png","webp","blurred","rotated","black and white","edges","contour","100x100","200x200","400x400","600x600","800x800","1200x1200","edited"]
 
+for folder in image_folder_paths:
+    if folder != "images":
+        try:
+            for file in os.listdir(f"./{folder}"):
+                os.remove(f"./{folder}/{file}")
+            os.rmdir(f"./{folder}")
+        except:
+            pass
+        
 # File variables/parameters for saving file and presets
 file_type = tk.IntVar(value=2)
 filter_option = tk.StringVar(value=filter_option_list[1])
@@ -46,14 +55,10 @@ thumbnail_option = tk.StringVar(value=thumbnail_option_list[1])
 blur = tk.DoubleVar(value=0) #Blur
 rotation = tk.DoubleVar(value=0) #Rotation
 combined_edit = tk.BooleanVar(value=False)
-
 # Separator
-"""
-separator = ttk.Separator(root)
-separator.grid(row=1, column=0, padx=(20, 10), pady=10, sticky="ew")
-"""
+
 # Create a Frame for the Radiobuttons
-radio_frame = ttk.LabelFrame(root, text="Save As", padding=(20, 10))
+radio_frame = ttk.LabelFrame(root, text="Save As", padding=(10, 10))
 radio_frame.grid(row=3, column=1, padx=(20, 5), pady=5, sticky="nsew")
     # Radiobuttons
 radio_1 = ttk.Radiobutton(radio_frame, text=".jpeg", variable=file_type, value=1)
@@ -73,7 +78,10 @@ def toggle_switch(state):
     if state.get() == True:
         switch.config(text="Combined Edits")
     else:
-        switch.config(text="Separate Edits")
+        switch.config(text="Separate Edits",style='Switch')
+
+theme_switch = ttk.Checkbutton(root,text="Dark Theme", state='disabled')
+theme_switch.grid(row=1,column=1, sticky="nsew")
 
 switch = ttk.Checkbutton(widgets_frame, text="Separate Edits",style="Switch",command=lambda: toggle_switch(combined_edit),variable=combined_edit)
 switch.grid(row=9, column=0, padx=5, pady=10, sticky="nsew")
@@ -131,7 +139,7 @@ def save_file(selection):
     else:
         #["images","jpeg","png","webp","blurred","rotated","filtered","100","200","400","600","800","1200","edited"]
         index = 0
-        for data in [file_ext,int(blur.get()),int(rotation.get()),filter_option.get(),thumbnail_option.get()]:
+        for data in [file_ext,int(blur.get()),int(rotation.get()) * -1,filter_option.get(),thumbnail_option.get()]:
             default_values = ["jpeg",0,0,"None","Original"]
             for file in selection:
                 file_name = treeview.item(file, "text")
@@ -143,7 +151,7 @@ def save_file(selection):
                     if data == "png":
                         pass
                     if not index in [1,2]: #not blur or rotation
-                        try: os.makedirs(f'./{data}')
+                        try: os.makedirs(f'./{str(data).lower()}')
                         except: pass
                     elif index == 1: #blur
                         try: os.makedirs(f"./blurred")
@@ -151,11 +159,23 @@ def save_file(selection):
                     else: #rotation
                         try: os.makedirs(f"./rotated")
                         except:pass
-                    if index == 4:
+                    #
+                    if index == 0:
+                        image.save(f'./{data}/{file_name.split(".")[0]}.{data}')
+                    elif index == 1:
+                        image.filter(ImageFilter.GaussianBlur(data)).save(f'./blurred/{file_name.split(".")[0]}-blur{data}.{file_name.split(".")[1]}')
+                    elif index == 2:
+                        image.rotate(data,expand=True).save(f'./rotated/{file_name.split(".")[0]}-rotate{data}.{file_name.split(".")[1]}')
+                    elif index == 3:
+                        if data == "Black and White":
+                            image.convert(mode="L").save(f'./{data}/{file_name}')
+                        elif data == "Edges":
+                            image.filter(ImageFilter.FIND_EDGES).save(f'./{data}/{file_name}')
+                        elif data == "Contour":
+                            image.filter(ImageFilter.CONTOUR).save(f'./{data}/{file_name}')
+                    elif index == 4:
                         image.thumbnail(tuple([int(data.split("x")[0]),int(data.split("x")[0])]))
-                        image.save(f'./{data}/{file_name}')
-                if index == 0:
-                    pass #file_ext
+                        image.save(f'./{data}/{file_name.split(".")[0]}-{data.split("x")[0]}.{file_name.split(".")[1]}')
             index += 1
     global treeview_data
     treeview_data = []
@@ -165,14 +185,13 @@ def open_file(selection_id): #Gives the selection ID for the treeview item selec
     #treeview.item(selection_id)
     for file in selection_id:
         file_name = treeview.item(file, "text")
-        print(treeview.item(treeview.parent(file))['text']) #IMPORTANT
-        if file_name == "images":
-            os.startfile("./images")
+        if os.path.isdir(file_name):
+            os.startfile(f"{file_name}")
         else:
             try:
-                image = Image.open(f'./edited/{file_name}').show()
+                Image.open(f'./{treeview.item(treeview.parent(file))["text"]}/{file_name}').show()
             except:
-                image = Image.open(f'./images/{file_name}').show()
+                Image.open(f'./images/{file_name}').show()
 
 def update_selection(selection):
     for file in treeview.selection():
@@ -231,7 +250,7 @@ def update_treeview():
     for i in treeview.get_children():
         treeview.delete(i)
     treeview_data = []
-
+    
     id = 1
     for folder in os.listdir('.'):
         if folder in image_folder_paths:
@@ -297,6 +316,7 @@ scale_2.grid(row=0, column=0, padx=(10,0), pady=(15, 0),sticky="ew")
 label_3 = ttk.Label(tab_2, text=f"{int(rotation.get())}° (Clockwise)", justify="center")
 label_3.grid(row=0, column=1, columnspan=1,padx=(75,0),pady=(10,0))
 scale_2.bind('<B1-Motion>',lambda event: label_3.config(text=f"{int(rotation.get())}° (Clockwise)"))
+
 # Tab #3
 tab_3 = ttk.Frame(notebook)
 notebook.add(tab_3, text="Resolution")
